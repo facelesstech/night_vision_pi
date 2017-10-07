@@ -2,7 +2,6 @@ import os
 import RPi.GPIO as GPIO
 import pygame
 from pygame.locals import *
-#import cv2
 import numpy as np
 import time
 from time import strftime
@@ -11,18 +10,18 @@ import picamera
 import picamera.array
 import datetime as dt
 
-#global startRecord 
-startRecord = 0
+recordButton = 0
 
-gpio_pin1=18 # The GPIO pin the button is attached to
-gpio_pin2=23 # The GPIO pin the button is attached to
-gpio_pin3=24 # The GPIO pin the button is attached to
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(gpio_pin1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(gpio_pin2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(gpio_pin3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+gpio_pin1=18 # The GPIO pin the button is attached to K1
+gpio_pin2=23 # The GPIO pin the button is attached to K2
+gpio_pin3=24 # The GPIO pin the button is attached to K3
+GPIO.setmode(GPIO.BCM) # Set GPIO mode
+GPIO.setup(gpio_pin1, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K1 on the screen
+GPIO.setup(gpio_pin2, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K2 on the screen
+GPIO.setup(gpio_pin3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K3 on the screen
 
-
+white = (255,255,255) # White colour
+red = (255,0,0) # Colours for the red dot
 
 #screen_width = 320
 #screen_height = 240 
@@ -43,24 +42,18 @@ cam_height = 600
 
 camera = picamera.PiCamera()
 camera.resolution = (cam_width, cam_height)
-#camera.resolution = (cam_width, cam_height)
-camera.hflip = True
-camera.framerate = 24
+camera.hflip = True # Flip the video from the camera
+camera.framerate = 24 # Frame rate
 #os.chdir ("/home/pi/camera_photos")
-photo_dir = '/home/pi/camera_photos' 
-video_dir = '/home/pi/camera_videos'
+photo_dir = '/home/pi/camera_photos' # Dir for photos
+video_dir = '/home/pi/camera_videos' # Dir for videos
 
-
-
-pygame.init()
+pygame.init() # Start pygame
 #pygame.display.set_caption("OpenCV camera stream on Pygame")
 
 pygame.mouse.set_visible(False) # Turned off the mouse pointer
 screen = pygame.display.set_mode([cam_width, cam_height],pygame.NOFRAME) # Set up the screen without a window boarder 
 video = picamera.array.PiRGBArray(camera)
-#video = picamera.array.PiArrayOutput(camera)
-
-#video = picamera.array.PiArrayOutput(camera, size=None)
 
 def buttonStateChanged1(gpio_pin1):
 
@@ -70,56 +63,62 @@ def buttonStateChanged1(gpio_pin1):
         print("Photo taken")
         camera.capture(photoFilename)
         print('%s.jpg' % strftime("%H:%M:%S"))
+        screen.fill(white)
+        pygame.display.update() 
 
 GPIO.add_event_detect(gpio_pin1, GPIO.BOTH, callback=buttonStateChanged1)
 
+state = 0
+
 def buttonStateChanged2(gpio_pin2):
 
-    global startRecord 
-    if not (GPIO.input(gpio_pin2)):
-        print("Button pressed two")
-#        camera.start_recording('video.h264')
-        startRecord += 1
-        print(startRecord)
-        videoFilename = os.path.join(video_dir, dt.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.h264'))
+    global state
+    global recordButton
+    videoFilename = os.path.join(video_dir, dt.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.h264')) # Brings all the elements together to have time and date
 
-        if (startRecord == 2):
-            startRecord = 0
+    if(GPIO.input(gpio_pin2) == True):  
+        if (state == 1):
+            state = 0
+        elif (state == 0):
+            state = 1
+    if (state == 1):
+        print ("start rec")
+        camera.start_recording(videoFilename) # Start recording with time and date as file name
+        recordButton = 1 # Turns on the record red dot
+    elif (state == 0):
+        print ("stop rec")
+        camera.stop_recording() # Stop the recording
+        recordButton = 0 # Turns off the record red dot
 
-        if startRecord == 1:
-#            camera.start_recording('video.mp4')
-            camera.start_recording(videoFilename)
-        if startRecord == 2:
-#            camera.stop_recording('video.mp4')
-            camera.stop_recording(videoFilename)
-
-#        firstButtonOnly = 0;
-#        weighing = 0;
-#        weighingFirstButton = 0;
-#    camera.start_recording('video.h264')
-
-
-GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
+#GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
+GPIO.add_event_detect(gpio_pin2, GPIO.RISING, callback=buttonStateChanged2,bouncetime=200)
 
 def buttonStateChanged3(gpio_pin3):
 
     if not (GPIO.input(gpio_pin3)):
         print("Button pressed three")
-        pygame.quit()
+        pygame.quit() # Quits the python script
 
 GPIO.add_event_detect(gpio_pin3, GPIO.BOTH, callback=buttonStateChanged3)
 
 #try:
 for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=True):
+
+    if recordButton == 1:
+        pygame.draw.circle(screen, red, [30, 30], 10, 10) # Draws a red record dot
+        pygame.display.update() # Updates the screen
+
+    else:
+        pass # Does nothing
+ #       pygame.display.update() 
+
     frame = np.rot90(frameBuf.array)        
     video.truncate(0)
-    
     frame = pygame.surfarray.make_surface(frame)
-    scaleVideo = pygame.transform.scale(frame, (320, 240))
+    scaleVideo = pygame.transform.scale(frame, (320, 240)) # Scales the video to fit the screen
     screen.fill([0,0,0])
-#    screen.blit(frame, (0,0))
     screen.blit(scaleVideo, (0,0))
-    pygame.display.update()
+    pygame.display.update() # Update screen
 
 #    if GPIO.input(gpio_pin1) == False: # Listen for the press, the loop until it steps
 #        print "button one"
@@ -133,13 +132,3 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
 #    for event in pygame.event.get():
 #        if event.type == KEYDOWN:
 #            camera.capture('image.jpg')
-#
-##                raise KeyboardInterrupt
-#        elif event.type == KEYUP:
-##                raise KeyboardInterrupt
-#            pass
-
-#except KeyboardInterrupt,SystemExit:
-#    pass
-#pygame.quit()
-#    cv2.destroyAllWindows()
