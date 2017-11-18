@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os
 import RPi.GPIO as GPIO
 import pygame
@@ -13,6 +15,25 @@ import datetime as dt
 
 from subprocess import call
 from subprocess import Popen, PIPE
+
+# Analog read battery level stuff
+import Adafruit_ADS1x15
+
+adc = Adafruit_ADS1x15.ADS1115()
+
+GAIN = 1
+
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+    # Figure out how 'wide' each range is
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    # Convert the left range into a 0-1 range (float)
+    valueScaled = float(value - leftMin) / float(leftSpan)
+
+    # Convert the 0-1 range into a value in the right range.
+    return rightMin + (valueScaled * rightSpan)
+
 
 recordButton = 0
 photoTaken = 0
@@ -31,6 +52,7 @@ GPIO.setup(gpio_pin3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button
 white = (255,255,255) # White colour
 red = (255,0,0) # Colours for the red dot
 green = (0,255,0) # Colours for the red dot
+blue = (0,0,255) # Colours for the red dot
 bright_green = (0,0,255) # Colours for the red dot
 black = (0,0,0) # Colours for the red dot
 
@@ -60,8 +82,10 @@ cam_height = 960
 
 camera = picamera.PiCamera()
 camera.resolution = (cam_width, cam_height)
-camera.hflip = True # Flip the video from the camera
+#camera.hflip = True # Flip the video from the camera
+camera.hflip = False # Flip the video from the camera
 camera.framerate = 24 # Frame rate
+#camera.framerate = 60 # Frame rate
 
 photo_dir = '/home/pi/camera_photos' # Dir for photos
 video_dir = '/home/pi/camera_videos' # Dir for videos
@@ -69,7 +93,8 @@ video_dir = '/home/pi/camera_videos' # Dir for videos
 #photo_dir_usb = '/media/pi/E7AB-81CC/camera_photos' # Dir for photos on USB
 #video_dir_usb = '/media/pi/E7AB-81CC/camera_videos' # Dir for videos on USB
 
-pygame.init() # Start pygame
+#pygame.init() # Start pygame
+pygame.display.init()
 pygame.font.init() # you have to call this at the start, 
                    # if you want to use this module.
 myfont = pygame.font.SysFont('freesansbold.ttf', 30)
@@ -216,8 +241,9 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
     video.truncate(0)
     frame = pygame.surfarray.make_surface(frame)
     scaleVideo = pygame.transform.scale(frame, (320, 240)) # Scales the video to fit the screen
-    screen.fill([0,0,0])
-    screen.blit(scaleVideo, (0,0))
+    flipVideo = pygame.transform.flip(scaleVideo, True, False) # Flip the scaled video horizonatly
+    screen.fill([0,0,0]) # Fill the screen
+    screen.blit(flipVideo, (0,0)) # Post to the screen
 
     if recordButton == 1:
         rec() # Puts the red dot on screen when recording
@@ -237,7 +263,7 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
                 pygame.draw.rect(screen, red,(270,200,50,50)) # Draw a box
                 pygame.quit() # Quits the python script
 
-            if 270+50 > mouse[0] > 220 and 0+50 > mouse[1] > 0:
+            if 270+50 > mouse[0] > 270 and 0+50 > mouse[1] > 0:
                 print "un mount"
                 proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
                 out, err = proc.communicate()  # Read data from stdout and stderr
@@ -249,13 +275,36 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
     out, err = proc.communicate()  # Read data from stdout and stderr
 
     if (out == ''):
-#        pygame.draw.rect(screen, white,(250,0,50,50)) # Draw a box
-        textsurface = myfont.render('EJECTED', True, green) # Draw text
-        screen.blit(textsurface,(220,10)) # Draw text
+        pygame.draw.lines(screen, green, True, [[285, 20], [315, 20], [300, 5], [285, 20]], 3) # Draw a triangle
+        pygame.draw.rect(screen, green, [285, 25, 30, 7], 3) # Draw a rectangle
 
     else:
-#        pygame.draw.rect(screen, white,(270,0,50,50)) # Draw a box
-        textsurface = myfont.render('EJECT', True, red) # Draw text
-        screen.blit(textsurface,(220,10)) # Draw text
+        pygame.draw.lines(screen, red, True, [[285, 20], [315, 20], [300, 5], [285, 20]], 3) # Draw a triangle
+        pygame.draw.rect(screen, red, [285, 25, 30, 7], 3) # Draw a rectangle
+
+# Analog read the battery level and display it on the button left corner of the screen
+    values = [0]*4
+
+    # Select the sample rate
+#    sps = 8    # 8 samples per second
+    # sps = 16   # 16 samples per second
+    # sps = 32   # 32 samples per second
+    # sps = 64   # 64 samples per second
+    # sps = 128  # 128 samples per second
+    #sps = 250  # 250 samples per second
+    # sps = 475  # 475 samples per second
+    # sps = 860  # 860 samples per second
+
+
+    for i in range(4):
+        # Read the specified ADC channel using the previously set gain value.
+        values[i] = adc.read_adc(i, gain=GAIN)
+#        values[i] = adc.read_adc(i, gain=GAIN, sps)
+
+    mapped_value = translate(values[0], 20500, 30000, 0, 100)
+    string_number = "%.f%%" % mapped_value
+    
+    textsurface = myfont.render(string_number, True, blue) # Draw text
+    screen.blit(textsurface,(15,215)) # Draw text
 
     pygame.display.update() # Update screen
