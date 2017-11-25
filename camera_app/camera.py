@@ -41,13 +41,13 @@ mouse = 0
 
 gpio_pin1=18 # The GPIO pin the button is attached to K1
 gpio_pin2=23 # The GPIO pin the button is attached to K2
-gpio_pin3=24 # The GPIO pin the button is attached to K3
+#gpio_pin3=24 # The GPIO pin the button is attached to K3
 
 GPIO.setmode(GPIO.BCM) # Set GPIO mode
 
 GPIO.setup(gpio_pin1, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K1 on the screen
 GPIO.setup(gpio_pin2, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K2 on the screen
-GPIO.setup(gpio_pin3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K3 on the screen
+#GPIO.setup(gpio_pin3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set the up the button. This is for K3 on the screen
 
 white = (255,255,255) # White colour
 red = (255,0,0) # Colours for the red dot
@@ -146,8 +146,8 @@ def buttonStateChanged1(gpio_pin1):
         time.sleep(2)
         photoTaken = 0
 
-#GPIO.add_event_detect(gpio_pin1, GPIO.BOTH, callback=buttonStateChanged1)
-GPIO.add_event_detect(gpio_pin1, GPIO.RISING, callback=buttonStateChanged1,bouncetime=400)
+GPIO.add_event_detect(gpio_pin1, GPIO.BOTH, callback=buttonStateChanged1)
+#GPIO.add_event_detect(gpio_pin1, GPIO.RISING, callback=buttonStateChanged1,bouncetime=400)
 
 state = 0 # State for the button
 
@@ -207,18 +207,18 @@ def buttonStateChanged2(gpio_pin2):
         camera.stop_recording() # Stop the recording
         recordButton = 0 # Turns off the record red dot
 
-#GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
-GPIO.add_event_detect(gpio_pin2, GPIO.RISING, callback=buttonStateChanged2,bouncetime=400)
+GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
+#GPIO.add_event_detect(gpio_pin2, GPIO.RISING, callback=buttonStateChanged2,bouncetime=400)
 
-def buttonStateChanged3(gpio_pin3):
-
-    if(GPIO.input(gpio_pin3) == True):  
-        print("Button pressed three")
-        pygame.quit() # Quits the python script
-
-#GPIO.add_event_detect(gpio_pin3, GPIO.BOTH, callback=buttonStateChanged3)
-GPIO.add_event_detect(gpio_pin3, GPIO.RISING, callback=buttonStateChanged3,bouncetime=400)
-
+#def buttonStateChanged3(gpio_pin3):
+#
+#    if(GPIO.input(gpio_pin3) == True):  
+#        print("Button pressed three")
+#        pygame.quit() # Quits the python script
+#
+##GPIO.add_event_detect(gpio_pin3, GPIO.BOTH, callback=buttonStateChanged3)
+#GPIO.add_event_detect(gpio_pin3, GPIO.RISING, callback=buttonStateChanged3,bouncetime=400)
+#
 def rec():
 
     pygame.gfxdraw.filled_circle(screen, 20, 20, 10, red) # Draw circle
@@ -260,7 +260,12 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
 #            if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
 #                pygame.draw.rect(gameDisplay, bright_green,(150,450,100,50))
             if 270+50 > mouse[0] > 270 and 200+50 > mouse[1] > 200: # Draw a hit target
-                pygame.draw.rect(screen, red,(270,200,50,50)) # Draw a box
+#                pygame.draw.rect(screen, red,(270,200,50,50)) # Draw a box
+#                pygame.quit() # Quits the python script
+                call(["sudo", "shutdown", "-h", "now" ])
+
+            if 0+50 > mouse[0] > 0 and 200+50 > mouse[1] > 200: # Draw a hit target
+#                pygame.draw.rect(screen, red,(270,200,50,50)) # Draw a box
                 pygame.quit() # Quits the python script
 
             if 270+50 > mouse[0] > 270 and 0+50 > mouse[1] > 0:
@@ -269,10 +274,11 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
                 out, err = proc.communicate()  # Read data from stdout and stderr
                 call(["umount", "/media/pi/%s" % out.rstrip('\n')]) # Attemps to make a dir 
 
-    pygame.draw.rect(screen, green,(270,190,50,50)) # Draw a box
+#    pygame.draw.rect(screen, green,(270,190,50,50)) # Draw a box
 
     proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
     out, err = proc.communicate()  # Read data from stdout and stderr
+#    print out
 
     if (out == ''):
         pygame.draw.lines(screen, green, True, [[285, 20], [315, 20], [300, 5], [285, 20]], 3) # Draw a triangle
@@ -281,6 +287,13 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
     else:
         pygame.draw.lines(screen, red, True, [[285, 20], [315, 20], [300, 5], [285, 20]], 3) # Draw a triangle
         pygame.draw.rect(screen, red, [285, 25, 30, 7], 3) # Draw a rectangle
+
+    # Power shutdown on screen button
+    pygame.gfxdraw.aacircle(screen, 295, 215, 15, red) # Draw an anti alias circle
+    pygame.gfxdraw.aacircle(screen, 295, 215, 14, red) # Draw an anti alias circle
+    pygame.gfxdraw.aacircle(screen, 295, 215, 13, red) # Draw an anti alias circle
+    pygame.gfxdraw.aacircle(screen, 295, 215, 12, red) # Draw an anti alias circle
+    pygame.draw.lines(screen, red, True, [[295, 215],[295, 192]], 3) # Draw a triangle
 
 # Analog read the battery level and display it on the button left corner of the screen
     values = [0]*4
@@ -301,10 +314,12 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
         values[i] = adc.read_adc(i, gain=GAIN)
 #        values[i] = adc.read_adc(i, gain=GAIN, sps)
 
-    mapped_value = translate(values[0], 20500, 30000, 0, 100)
+#    mapped_value = translate(values[0], 20500, 30000, 0, 100)
+    mapped_value = translate(values[0], 22500, 30500, 0, 100)
     string_number = "%.f%%" % mapped_value
     
     textsurface = myfont.render(string_number, True, blue) # Draw text
     screen.blit(textsurface,(15,215)) # Draw text
 
     pygame.display.update() # Update screen
+
