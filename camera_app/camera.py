@@ -61,12 +61,12 @@ black = (0,0,0) # Colours for the red dot
 #cam_height = 240 
 
 # 2X Screen res
-#cam_width = 640 
-#cam_height = 480 
+cam_width = 640 
+cam_height = 480 
 
 # 3X Screen res
-#cam_width = 720 
-#cam_height = 960 
+#cam_width = 960 
+#cam_height = 720 
 
 # QVGA
 #cam_width = 800 
@@ -77,8 +77,8 @@ black = (0,0,0) # Colours for the red dot
 #cam_height = 1080 
 
 # 4X normal res
-cam_width = 1280 
-cam_height = 960 
+#cam_width = 1280 
+#cam_height = 960 
 
 camera = picamera.PiCamera()
 camera.resolution = (cam_width, cam_height)
@@ -89,9 +89,6 @@ camera.framerate = 24 # Frame rate
 
 photo_dir = '/home/pi/camera_photos' # Dir for photos
 video_dir = '/home/pi/camera_videos' # Dir for videos
-
-#photo_dir_usb = '/media/pi/E7AB-81CC/camera_photos' # Dir for photos on USB
-#video_dir_usb = '/media/pi/E7AB-81CC/camera_videos' # Dir for videos on USB
 
 #pygame.init() # Start pygame
 pygame.display.init()
@@ -151,63 +148,63 @@ GPIO.add_event_detect(gpio_pin1, GPIO.BOTH, callback=buttonStateChanged1)
 
 state = 0 # State for the button
 
-def buttonStateChanged2(gpio_pin2):
-
-    global state
-    global recordButton
-    global video_out
-
-
-    if(GPIO.input(gpio_pin2) == True):  
-
-        if (state == 1):
-            state = 0
-
-        elif (state == 0):
-            state = 1
-
-    if (state == 1):
-#        print ("start rec")
-
-        try: # Checks to see if USB drive is there if not saves to SD card
-
-            proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
-            video_out, err = proc.communicate()  # Read data from stdout and stderr
-            video_dir_usb = '/media/pi/%s/camera_videos' % video_out.rstrip('\n') # Dir for videos on USB
-
-            proc = Popen(["ls /media/pi/%s" % video_out], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
-            video_out_dir, err = proc.communicate()  # Read data from stdout and stderr
-
-            if (video_out == ''):
-                raise ValueError('empty string')
-
-            else:
-                print video_dir
-#            if (video_dir == ''):
-                try:
-    #                print video_dir
-                    call(["mkdir", "/media/pi/%s/camera_videos" % video_out.rstrip('\n')]) # Attemps to make a dir 
-                    videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
-                    camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
+#def buttonStateChanged2(gpio_pin2):
+#
+#    global state
+#    global recordButton
+#    global video_out
+#
+#
+#    if(GPIO.input(gpio_pin2) == True):  
+#
+#        if (state == 1):
+#            state = 0
+#
+#        elif (state == 0):
+#            state = 1
+#
+#    if (state == 1):
+##        print ("start rec")
+#
+#        try: # Checks to see if USB drive is there if not saves to SD card
+#
+#            proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
+#            video_out, err = proc.communicate()  # Read data from stdout and stderr
+#            video_dir_usb = '/media/pi/%s/camera_videos' % video_out.rstrip('\n') # Dir for videos on USB
+#
+#            proc = Popen(["ls /media/pi/%s" % video_out], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
+#            video_out_dir, err = proc.communicate()  # Read data from stdout and stderr
+#
+#            if (video_out == ''):
+#                raise ValueError('empty string')
+#
 #            else:
-                except: # If it cant make dir then it just uses the one on the flash drive
-
-                    videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
-                    camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
-
-        except ValueError as e: # If error happens it falls back to this state and saves to sd card
-            videoFilename = os.path.join(video_dir, dt.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.h264')) # Brings all the elements together to have time and date
-#            print("video taken sd")
-            camera.start_recording(videoFilename) # Start recording with time and date as file name
-
-        recordButton = 1 # Turns on the record red dot
-
-    elif (state == 0):
-#        print ("stop rec")
-        camera.stop_recording() # Stop the recording
-        recordButton = 0 # Turns off the record red dot
-
-GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
+#                print video_dir
+##            if (video_dir == ''):
+#                try:
+#    #                print video_dir
+#                    call(["mkdir", "/media/pi/%s/camera_videos" % video_out.rstrip('\n')]) # Attemps to make a dir 
+#                    videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
+#                    camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
+##            else:
+#                except: # If it cant make dir then it just uses the one on the flash drive
+#
+#                    videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
+#                    camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
+#
+#        except ValueError as e: # If error happens it falls back to this state and saves to sd card
+#            videoFilename = os.path.join(video_dir, dt.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.h264')) # Brings all the elements together to have time and date
+##            print("video taken sd")
+#            camera.start_recording(videoFilename) # Start recording with time and date as file name
+#
+#        recordButton = 1 # Turns on the record red dot
+#
+#    elif (state == 0):
+##        print ("stop rec")
+#        camera.stop_recording() # Stop the recording
+#        recordButton = 0 # Turns off the record red dot
+#
+#GPIO.add_event_detect(gpio_pin2, GPIO.BOTH, callback=buttonStateChanged2)
 #GPIO.add_event_detect(gpio_pin2, GPIO.RISING, callback=buttonStateChanged2,bouncetime=400)
 
 #def buttonStateChanged3(gpio_pin3):
@@ -274,6 +271,99 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
                 out, err = proc.communicate()  # Read data from stdout and stderr
                 call(["umount", "/media/pi/%s" % out.rstrip('\n')]) # Attemps to make a dir 
 
+            if 0+160 > mouse[0] > 0 and 50+160 > mouse[1] > 50:
+                print "pressed left"
+
+                if (state == 1):
+                    state = 0
+
+                elif (state == 0):
+                    state = 1
+
+                if (state == 1):
+            #        print ("start rec")
+
+                    try: # Checks to see if USB drive is there if not saves to SD card
+
+                        proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
+                        video_out, err = proc.communicate()  # Read data from stdout and stderr
+                        video_dir_usb = '/media/pi/%s/camera_videos' % video_out.rstrip('\n') # Dir for videos on USB
+
+                        proc = Popen(["ls /media/pi/%s" % video_out], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
+                        video_out_dir, err = proc.communicate()  # Read data from stdout and stderr
+
+                        if (video_out == ''):
+                            raise ValueError('empty string')
+
+                        else:
+                            print video_dir
+            #            if (video_dir == ''):
+                            try:
+                #                print video_dir
+                                call(["mkdir", "/media/pi/%s/camera_videos" % video_out.rstrip('\n')]) # Attemps to make a dir 
+                                videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
+                                camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
+            #            else:
+                            except: # If it cant make dir then it just uses the one on the flash drive
+
+                                videoFilenameUsb = os.path.join(video_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.h264')) # Brings all the elements together to have time and date
+                                camera.start_recording(videoFilenameUsb) # Start recording with time and date as file name
+
+                    except ValueError as e: # If error happens it falls back to this state and saves to sd card
+                        videoFilename = os.path.join(video_dir, dt.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.h264')) # Brings all the elements together to have time and date
+            #            print("video taken sd")
+                        camera.start_recording(videoFilename) # Start recording with time and date as file name
+
+                    recordButton = 1 # Turns on the record red dot
+
+                elif (state == 0):
+            #        print ("stop rec")
+                    camera.stop_recording() # Stop the recording
+                    recordButton = 0 # Turns off the record red dot
+
+
+            if 160+160 > mouse[0] > 160 and 50+160 > mouse[1] > 50:
+                print "pressed right"
+
+                try: # Checks to see if USB drive is there if not saves to SD card 
+        #            print("USB")
+                    proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
+                    out, err = proc.communicate()  # Read data from stdout and stderr
+                    print out
+                    photo_dir_usb = '/media/pi/%s/camera_photos' % out.rstrip('\n') # Dir for videos on USB
+        #            print "photo dir %s" % photo_dir_usb
+        #            else:
+        #        except:
+
+                    if (out == ''):
+                        raise ValueError('empty string')
+
+                    else:
+                        try:
+                            call(["mkdir", "/media/pi/%s/camera_photos" % out.rstrip('\n')])
+                            photoFilenameUsb = os.path.join(photo_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.jpg')) # Makes up the file name by adding it all into one string
+                            camera.capture(photoFilenameUsb)
+            #                print("Photo taken usb")
+                            photo(photoFilenameUsb)
+
+                        except:
+                            photoFilenameUsb = os.path.join(photo_dir_usb, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.jpg')) # Makes up the file name by adding it all into one string
+                            camera.capture(photoFilenameUsb)
+            #                print("Photo taken usb")
+                            photo(photoFilenameUsb)
+                except ValueError as e:
+                    photoFilename = os.path.join(photo_dir, dt.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.jpg')) # Makes up the file name by adding it all into one string
+                    print("SD CARD")
+        #            print(e)
+                    camera.capture(photoFilename)
+        #            print("Photo taken")
+                    photo(photoFilename)
+
+        #        print('%s.jpg' % strftime("%H:%M:%S"))
+                photoTaken = 1
+                time.sleep(2)
+                photoTaken = 0
+
 #    pygame.draw.rect(screen, green,(270,190,50,50)) # Draw a box
 
     proc = Popen(["ls /media/pi/"], stdout=PIPE, shell=True) # Run comman and send it to stdout and stder
@@ -298,28 +388,24 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
 # Analog read the battery level and display it on the button left corner of the screen
     values = [0]*4
 
-    # Select the sample rate
-#    sps = 8    # 8 samples per second
-    # sps = 16   # 16 samples per second
-    # sps = 32   # 32 samples per second
-    # sps = 64   # 64 samples per second
-    # sps = 128  # 128 samples per second
-    #sps = 250  # 250 samples per second
-    # sps = 475  # 475 samples per second
-    # sps = 860  # 860 samples per second
-
-
     for i in range(4):
         # Read the specified ADC channel using the previously set gain value.
         values[i] = adc.read_adc(i, gain=GAIN)
 #        values[i] = adc.read_adc(i, gain=GAIN, sps)
 
-#    mapped_value = translate(values[0], 20500, 30000, 0, 100)
-    mapped_value = translate(values[0], 22500, 30500, 0, 100)
+    mapped_value = translate(values[0], 24000, 30500, 0, 100)
     string_number = "%.f%%" % mapped_value
     
     textsurface = myfont.render(string_number, True, blue) # Draw text
     screen.blit(textsurface,(15,215)) # Draw text
+
+    if values[0] <= 24000: # If the battery level drops too low it will issue the shutdown command
+        screen.fill(white) # Flash screen white
+        textsurface = myfont.render('Low Battery', True, black) # Draw text
+        screen.blit(textsurface,(35,10)) # Draw text
+        time.sleep(5)
+        call(["sudo", "shutdown", "-h", "now" ]) # Shutdown command
+        
 
     pygame.display.update() # Update screen
 
