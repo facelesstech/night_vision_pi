@@ -17,22 +17,22 @@ from subprocess import call
 from subprocess import Popen, PIPE
 
 # Analog read battery level stuff
-import Adafruit_ADS1x15
-
-adc = Adafruit_ADS1x15.ADS1115()
-
-GAIN = 1
-
-def translate(value, leftMin, leftMax, rightMin, rightMax):
-    # Figure out how 'wide' each range is
-    leftSpan = leftMax - leftMin
-    rightSpan = rightMax - rightMin
-
-    # Convert the left range into a 0-1 range (float)
-    valueScaled = float(value - leftMin) / float(leftSpan)
-
-    # Convert the 0-1 range into a value in the right range.
-    return rightMin + (valueScaled * rightSpan)
+#import Adafruit_ADS1x15
+#
+#adc = Adafruit_ADS1x15.ADS1115()
+#
+#GAIN = 1
+#
+#def translate(value, leftMin, leftMax, rightMin, rightMax):
+#    # Figure out how 'wide' each range is
+#    leftSpan = leftMax - leftMin
+#    rightSpan = rightMax - rightMin
+#
+#    # Convert the left range into a 0-1 range (float)
+#    valueScaled = float(value - leftMin) / float(leftSpan)
+#
+#    # Convert the 0-1 range into a value in the right range.
+#    return rightMin + (valueScaled * rightSpan)
 
 
 recordButton = 0
@@ -273,6 +273,9 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
 
             if 0+160 > mouse[0] > 0 and 50+160 > mouse[1] > 50:
                 print "pressed left"
+                global state
+                global recordButton
+                global video_out
 
                 if (state == 1):
                     state = 0
@@ -386,25 +389,25 @@ for frameBuf in camera.capture_continuous(video, format ="rgb", use_video_port=T
     pygame.draw.lines(screen, red, True, [[295, 215],[295, 192]], 3) # Draw a triangle
 
 # Analog read the battery level and display it on the button left corner of the screen
-    values = [0]*4
-
-    for i in range(4):
-        # Read the specified ADC channel using the previously set gain value.
-        values[i] = adc.read_adc(i, gain=GAIN)
-#        values[i] = adc.read_adc(i, gain=GAIN, sps)
-
-    mapped_value = translate(values[0], 24000, 30500, 0, 100)
-    string_number = "%.f%%" % mapped_value
-    
-    textsurface = myfont.render(string_number, True, blue) # Draw text
-    screen.blit(textsurface,(15,215)) # Draw text
-
-    if values[0] <= 24000: # If the battery level drops too low it will issue the shutdown command
-        screen.fill(white) # Flash screen white
-        textsurface = myfont.render('Low Battery', True, black) # Draw text
-        screen.blit(textsurface,(35,10)) # Draw text
-        time.sleep(5)
-        call(["sudo", "shutdown", "-h", "now" ]) # Shutdown command
+#    values = [0]*4
+#
+#    for i in range(4):
+#        # Read the specified ADC channel using the previously set gain value.
+#        values[i] = adc.read_adc(i, gain=GAIN)
+##        values[i] = adc.read_adc(i, gain=GAIN, sps)
+#
+#    mapped_value = translate(values[0], 24000, 30500, 0, 100)
+#    string_number = "%.f%%" % mapped_value
+#    
+#    textsurface = myfont.render(string_number, True, blue) # Draw text
+#    screen.blit(textsurface,(15,215)) # Draw text
+#
+#    if values[0] <= 24000: # If the battery level drops too low it will issue the shutdown command
+#        screen.fill(white) # Flash screen white
+#        textsurface = myfont.render('Low Battery', True, black) # Draw text
+#        screen.blit(textsurface,(35,10)) # Draw text
+#        time.sleep(5)
+#        call(["sudo", "shutdown", "-h", "now" ]) # Shutdown command
         
 
     pygame.display.update() # Update screen
