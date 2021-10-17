@@ -1,6 +1,6 @@
 [Service]
-ExecStart=/usr/bin/python /home/pi/night_shutdown/pishutdown.py
-WorkingDirectory=/home/pi/night_shutdown/
+ExecStart=/usr/bin/python /home/pi/night_vision_pi/night_shutdown/pishutdown.py
+WorkingDirectory=/home/pi/night_vision_pi/night_shutdown/
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
